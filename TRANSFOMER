@@ -1,0 +1,64 @@
+from pyspark.sql import DataFrame
+from pyspark.sql.functions import col, when, lit
+
+class PersonTransformer:
+    @staticmethod
+    def create_person_base_hub(personne_df: DataFrame) -> DataFrame:
+        """Creates the base person hub with common attributes"""
+        return personne_df.select(
+            "personne_id",
+            "nom",
+            "date_creation",
+            "statut"
+        )
+    
+    @staticmethod
+    def create_person_physical_hub(
+        personne_df: DataFrame,
+        personne_physique_df: DataFrame
+    ) -> DataFrame:
+        """Creates the physical person hub"""
+        return personne_df.join(
+            personne_physique_df,
+            "personne_id",
+            "inner"
+        ).select(
+            personne_df["personne_id"],
+            personne_physique_df["nom"],
+            "prenom",
+            "date_naissance",
+            "nationalite",
+            personne_df["date_creation"],
+            personne_df["statut"]
+        )
+    
+    @staticmethod
+    def create_person_moral_hub(
+        personne_df: DataFrame,
+        personne_morale_df: DataFrame
+    ) -> DataFrame:
+        """Creates the moral person hub"""
+        return personne_df.join(
+            personne_morale_df,
+            "personne_id",
+            "inner"
+        ).select(
+            personne_df["personne_id"],
+            "raison_sociale",
+            "siren",
+            "forme_juridique",
+            personne_df["date_creation"],
+            personne_df["statut"]
+        )
+    
+    @staticmethod
+    def create_person_address_hub(
+        personne_df: DataFrame,
+        address_df: DataFrame
+    ) -> DataFrame:
+        """Creates the person-address hub"""
+        return address_df.join(
+            personne_df.select("personne_id"),
+            "personne_id",
+            "inner"
+        )
